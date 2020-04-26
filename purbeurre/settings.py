@@ -27,14 +27,13 @@ SECRET_KEY = "uojp%c%-@l$aj0qc(v7(h3v63001h8$n=3g$7^g0j!)w-$#)r0"
 
 ALLOWED_HOSTS = ['purbeurre-aa.herokuapp.com', '127.0.0.1']
 
-
 # Application definition
 
 INSTALLED_APPS = [
+    'widget_tweaks',
     "substitute.apps.SubstituteConfig",
     "account.apps.AccountConfig",
-    "home.apps.HomeConfig",
-    'widget_tweaks',
+    "home.apps.HomeConfig",    
     "django.contrib.admin",
     "django.contrib.auth",
     "django.contrib.contenttypes",

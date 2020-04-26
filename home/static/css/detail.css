@@ -1,3 +1,19 @@
+.favorite .table tbody img {
+  max-height: 80px;
+}
+
+.favorite button {
+  height: 30px;
+  font-size: 0.7em;
+  justify-content: center;
+  vertical-align: middle;
+  padding-top: 0;
+  padding-bottom: 0;
+  padding-left: 15px;
+  padding-right: 15px;
+  margin-left: 5px;
+}
+
 #product_result,
 .product_result {
   background: url("../images/index/search_font.jpg");

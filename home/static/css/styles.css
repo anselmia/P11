@@ -88,6 +88,10 @@ section {
   vertical-align: middle;
 }
 
+.masthead .messages li {
+  color: white;
+}
+
 body {
   margin: 0;
   font-family: "Scope One", sans-serif;

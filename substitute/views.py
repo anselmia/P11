@@ -1,6 +1,6 @@
 from django.shortcuts import render, redirect
 from home import search
-from .models import Substitute
+from .models import Substitute, Family
 from home.models import Product
 from home.forms import SearchForm
 from django.core.paginator import Paginator
@@ -91,11 +91,13 @@ def detail_favoris(request, product_id, substitute_id):
         context = {}
         context["form_search"] = SearchForm(None)
         substitute = Product.objects.get(pk=substitute_id)
+        families = Family.objects.all()
         product = Product.objects.get(pk=product_id)
         if substitute is not None and product is not None:
             context["product"] = product
             context["substitute"] = substitute
             context["title"] = "Détails du favoris"
+            context["families"] = families
             return render(request, "detail_favoris.html", context)
         else:  # pragma: no cover
             messages.warning(

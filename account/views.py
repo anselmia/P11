@@ -6,22 +6,80 @@ from home.forms import SearchForm
 from django.shortcuts import render, redirect, HttpResponseRedirect
 from django.urls import reverse
 from django.contrib import messages
-from substitute.models import Substitute
+from substitute.models import Substitute, Family
 from django.contrib.auth.decorators import login_required
 
 
 @login_required
-def favorites(request):
+def favorites(request, id_family=None):
     """
     @require login
     Views for favorites
     :param request:
     :return render favorites.html:
     """
-    favoris = Substitute.objects.filter(user_id=request.user)
+    family = None
+    if request.method == "GET" and id_family != None:
+        if id_family != 0:
+            family = Family.objects.get(pk=id_family)
+            favoris = Substitute.objects.filter(user_id=request.user, family_id=family)
+        else:
+            favoris = Substitute.objects.filter(user_id=request.user)
+    else:
+        favoris = Substitute.objects.filter(user_id=request.user)
+
+    a = len(favoris)
+
+    families = Family.objects.all()
     return render(
-        request, "favorites.html", {"favoris": favoris, "form_search": SearchForm(None)}
+        request,
+        "favorites.html",
+        {
+            "favoris": favoris,
+            "families": families,
+            "family": family,
+            "form_search": SearchForm(None),
+        },
     )
+
+
+def save_favorites(request, id_favori, id_family):
+    """
+        @require login
+        Views for favorites
+        :param request:
+        :return render favorites.html:
+    """
+
+    if request.method == "GET":
+        favori = Substitute.objects.get(pk=id_favori)
+        if id_family == 0:
+            family = None
+        else:
+            family = Family.objects.get(pk=id_family)
+        favori.family_id = family
+        favori.save()
+
+    return redirect(reverse("account:favorites"))
+
+
+def save_family(request, family_name=None):
+    """
+        @require login
+        Views for favorites
+        :param request:
+        :return render favorites.html:
+    """
+
+    if (
+        request.method == "GET"
+        and family_name != None
+        and not Family.objects.filter(name=family_name).exists()
+    ):
+        family = Family.objects.create(name=family_name)
+        family.save()
+
+    return redirect(reverse("account:favorites"))
 
 
 @login_required

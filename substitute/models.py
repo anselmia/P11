@@ -3,6 +3,18 @@ from home.models import Product
 from django.conf import settings
 
 
+class Family(models.Model):
+    """ Product Categories """
+
+    name = models.CharField(max_length=100, unique=True, verbose_name="Nom")
+
+    class Meta:
+        verbose_name = "Famille"
+
+    def __str__(self):
+        return self.name
+
+
 class Substitute(models.Model):
     """ Favorites """
 
@@ -14,6 +26,10 @@ class Substitute(models.Model):
     )
 
     user_id = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
+
+    family_id = models.ForeignKey(
+        Family, related_name="family", on_delete=models.CASCADE, blank=True, null=True
+    )
 
     class Meta:
         constraints = [
