@@ -72,7 +72,7 @@
   $('select.family').on('change', function (e) {
     var optionSelected = $("option:selected", this);
     var valueSelected = this.value;
-    var url = "http://127.0.0.1:8000/favorites/" + parseInt(valueSelected) + '/'
+    var url = window.location.origin + "/favorites/" + parseInt(valueSelected) + '/'
     window.location.href = url;
   });
 
@@ -146,7 +146,7 @@ function openAlert(largeur, hauteur) {
   bouton.onclick = function () {
     popup.style.display = "none";
     var family = input.value
-    var url = "http://127.0.0.1:8000/save_family/" + family + '/'
+    var url = window.location.origin + "/save_family/" + family + '/'
     window.location.href = url;
   };
   bouton2.onclick = function () {
