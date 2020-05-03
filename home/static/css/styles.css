@@ -6726,6 +6726,12 @@ header.masthead h2 {
 
 @media (min-width: 340px) {
 
+  select,
+  th,
+  td {
+    font-size: 0.5rem;
+  }
+
   h1,
   .h1 {
     font-size: 1.5rem;
@@ -6753,6 +6759,12 @@ header.masthead h2 {
 }
 
 @media (min-width: 576px) {
+
+  select,
+  th,
+  td {
+    font-size: 0.6rem;
+  }
 
   h1,
   .h1 {
@@ -7875,6 +7887,8 @@ header.masthead h2 {
 }
 
 @media (max-width: 575.98px) {
+
+
   .table-responsive-sm {
     display: block;
     width: 100%;
@@ -7926,6 +7940,13 @@ header.masthead h2 {
 }
 
 @media (min-width: 768px) {
+
+  select,
+  th,
+  td {
+    font-size: 0.7rem;
+  }
+
   .list-group-horizontal-md {
     flex-direction: row;
   }
@@ -8870,6 +8891,13 @@ header.masthead h2 {
 }
 
 @media (min-width: 992px) {
+
+  select,
+  th,
+  td {
+    font-size: 1rem;
+  }
+
   .lead {
     font-size: 1.3rem;
     font-weight: 300;
@@ -9875,6 +9903,13 @@ header.masthead h2 {
 }
 
 @media (min-width: 1200px) {
+
+  select,
+  th,
+  td {
+    font-size: 1.2rem;
+  }
+
 
   h1,
   .h1 {

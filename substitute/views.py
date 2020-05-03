@@ -1,17 +1,19 @@
-from django.shortcuts import render, redirect
+from django.shortcuts import render, redirect, HttpResponse
 from home import search
 from .models import Substitute, Family
-from home.models import Product
+from home.models import Product, Rating
 from home.forms import SearchForm
 from django.core.paginator import Paginator
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.urls import reverse
+from django.views.decorators.csrf import csrf_exempt
+from django.http import JsonResponse
 
 
-def substitute(request, product_id):
+def substitute(request, product_id, order=0):
     if request.method == "GET":
-        substitutes = search.search_substitute(product_id)
+        substitutes = search.search_substitute(product_id, order)
         if substitutes.count() > 0:
             paginator = Paginator(substitutes, 6)
             page = request.GET.get("page")
@@ -21,6 +23,7 @@ def substitute(request, product_id):
             context["title"] = "Substituts"
             context["product"] = Product.objects.get(pk=product_id)
             context["form_search"] = SearchForm(None)
+            context["order"] = order
 
             return render(request, "substitute.html", context)
         else:
@@ -44,6 +47,9 @@ def detail(request, product_id, substitute_id):
                         product_id=product,
                         substitute_id=substitute,
                     ).exists()
+                    context["note"] = Rating.objects.filter(
+                        user_id=request.user, product_id=substitute
+                    )
                 context["form_search"] = SearchForm(None)
 
                 return render(request, "detail.html", context)
@@ -104,4 +110,55 @@ def detail_favoris(request, product_id, substitute_id):
                 request,
                 "Il y a eu une erreur lors de la récupération des informations du favoris",
             )
-            return redirect(reverse('home:index'))
+            return redirect(reverse("home:index"))
+
+
+@csrf_exempt
+def rating(request, product_id):
+    product = Product.objects.get(pk=product_id)
+    if product.average_rating is None:
+        product.average_rating = 0
+    tot_rating = Rating.objects.filter(product_id=product)
+
+    return JsonResponse(
+        {
+            "whole_avg": int(round(product.average_rating)),
+            "number_votes": tot_rating.count(),
+            "dec_avg": round(product.average_rating, 1),
+        }
+    )
+
+
+@csrf_exempt
+def vote(request, product_id, actual_rating):
+    product = Product.objects.get(pk=product_id)
+    if request.method == "POST":
+        try:
+            nb_vote = 0
+            ratings = 0
+            tot_rating = Rating.objects.filter(product_id=product)
+            for rating in tot_rating:
+                nb_vote += 1
+                ratings += rating.rating
+
+            Rating.objects.create(
+                rating=actual_rating, user_id=request.user, product_id=product
+            )
+
+            nb_vote += 1
+            ratings += actual_rating
+            product.average_rating = round(ratings / nb_vote, 1)
+            product.save()
+        except:
+            pass
+
+        if product.average_rating is None:
+            product.average_rating = 0
+
+        return JsonResponse(
+            {
+                "whole_avg": int(round(product.average_rating)),
+                "number_votes": nb_vote,
+                "dec_avg": round(product.average_rating, 1),
+            }
+        )

@@ -1,9 +1,11 @@
 """ Account App Tests """
+import time
 from django.test import TestCase
 from django.urls import reverse
 from .models import User
 from .forms import ConnexionForm, SignUpForm, UserUpdateForm
 from django.test import LiveServerTestCase
+from django.contrib.staticfiles.testing import StaticLiveServerTestCase
 from selenium import webdriver
 from home.models import Product, Category
 from substitute.models import Substitute, Family
@@ -11,9 +13,9 @@ from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
+from selenium.webdriver.support.ui import Select
 
-
-# Create your tests here.
+#Create your tests here.
 class LoginTests(TestCase):
     """ Unit Test Class for login function """
 
@@ -327,7 +329,7 @@ class RegisterLiveTestCase(LiveServerTestCase):
         if (selenium.current_url[len(selenium.current_url) - 1]) == "/":
             current_url = selenium.current_url[:-1]
         assert current_url == f"{self.live_server_url}"
-        assert "  Se déconnecter" in selenium.page_source
+        assert "Se déconnecter" in selenium.page_source
         assert User.objects.filter(username="testuser").exists() is True
 
 
@@ -586,12 +588,12 @@ class SaveFavoritesTests(TestCase):
         self.favori = Substitute.objects.get(
             product_id=self.product, substitute_id=self.substitute, user_id=self.user
         )
-        Family.objects.create(name="family")
-        self.family = Family.objects.get(name="family")
+        Family.objects.create(name="family", user_id=self.user)
+        self.family = Family.objects.get(name="family", user_id=self.user)
 
     def test_saves_favorites_page(self):  # pragma: no cover
         response = self.client.get(
-            "/save_favorites/" + str(self.favori.id) + "/" + str(self.family.id),
+            "/save_favorites/" + str(self.favori.id) + "/" + str(self.family.id) + "/",
             args=(self.favori.id, self.family.id,),
             follow=True,
         )
@@ -606,8 +608,8 @@ class SaveFavoritesTests(TestCase):
         self.assertTemplateUsed(response, "favorites.html")
 
     def test_save_favorites(self):  # pragma: no cover
-        Family.objects.create(name="family2")
-        family = Family.objects.get(name="family2")
+        Family.objects.create(name="family2", user_id=self.user)
+        family = Family.objects.get(name="family2", user_id=self.user)
 
         response = self.client.get(
             reverse("account:save_favorites", args=(self.favori.id, family.id,)),
@@ -624,66 +626,225 @@ class SaveFavoritesTests(TestCase):
         )
 
 
-class RegisterLiveTestCase(LiveServerTestCase):
-    """ Functional Test Class for register function """
+class SaveFavoritesLiveTestCase(StaticLiveServerTestCase):
+    """ Functional Test Class for save_favorites function """
 
     def setUp(self):  # pragma: no cover
         """ SetUp of the test """
+        self.credentials = {
+            "username": "usertest",
+            "password": "!!!!!!!!",
+            "email": "test_test@test.fr",
+        }
+        User.objects.create_user(**self.credentials)
         ChromeDriver = r"C:/Users/foxnono06/AppData/Local/chromedriver.exe"
         self.selenium = webdriver.Chrome(executable_path=ChromeDriver)
-        super(RegisterLiveTestCase, self).setUp()
+        super(SaveFavoritesLiveTestCase, self).setUp()
+        Category.objects.create(name="test")
+        category = Category.objects.get(name="test")
+        for index in range(0, 9):
+            Product.objects.create(
+                name=f"My product {index}",
+                category_id=category,
+                nutriscore=index,
+                url=f"www.test.fr {index}",
+                ingredients="www.test.fr",
+                photo="www.test.fr",
+                fat_100g=0,
+                saturate_fat_100g=0,
+                salt_100g=0,
+                sugars_100g=0,
+            )
+
+        # Login the user
+        self.assertTrue(
+            self.client.login(
+                username=self.credentials["username"],
+                password=self.credentials["password"],
+            )
+        )
+        # Add cookie to log in the browser
+        cookie = self.client.cookies["sessionid"]
+        self.selenium.get(
+            self.live_server_url
+        )  # visit page in the site domain so the page accepts the cookie
+        self.selenium.add_cookie(
+            {"name": "sessionid", "value": cookie.value, "secure": False, "path": "/"}
+        )
+
+        self.user = User.objects.get(username="usertest")
+        self.product = Product.objects.get(name="My product 1")
+        self.substitute = Product.objects.get(name="My product 2")
+        Family.objects.create(name="family", user_id=self.user)
+        Family.objects.create(name="family2", user_id=self.user)
+        Family.objects.create(name="family3", user_id=self.user)
+        self.family = Family.objects.get(name="family", user_id=self.user)
+        Substitute.objects.create(
+            product_id=self.product,
+            substitute_id=self.substitute,
+            user_id=self.user,
+            family_id=self.family,
+        )
+        self.favori = Substitute.objects.get(
+            product_id=self.product,
+            substitute_id=self.substitute,
+            user_id=self.user,
+            family_id=self.family,
+        )
 
     def tearDown(self):  # pragma: no cover
         """ tearDown of the test """
         self.selenium.quit()
-        super(RegisterLiveTestCase, self).tearDown()
+        super(SaveFavoritesLiveTestCase, self).tearDown()
 
-    def test_register(self):  # pragma: no cover
-        """ Simulate register action from webdriver """
+    def test_save_favorites(self):  # pragma: no cover
+        """ Simulate save favorite action from webdriver """
         selenium = self.selenium
         # Opening the link we want to test
-        selenium.get(f"{self.live_server_url}/login/")
+        selenium.get(f"{self.live_server_url}/favorites/")
         selenium.maximize_window()
         selenium.implicitly_wait(5)
 
-        register = selenium.find_element_by_id("register")
-        register.click()
-        wait = WebDriverWait(selenium, 20)
-        wait.until(EC.visibility_of_element_located((By.ID, "id_robot")))
+        select = Select(selenium.find_element_by_class_name("favori"))
+        family = Family.objects.get(name="family2", user_id=self.user)
+        # select by visible text
+        select.select_by_value(str(self.favori.id) + "/" + str(family.id))
+        value = str(self.favori.id) + "/" + str(family.id)
+        selenium.find_element_by_class_name("family2").click()
+        time.sleep(10)
+        assert (
+            Substitute.objects.filter(
+                product_id=self.product,
+                substitute_id=self.substitute,
+                user_id=self.user,
+                family_id=family,
+            ).exists()
+            is True
+        )
+        assert "Mes Favoris" in selenium.page_source
+
+
+class SaveFamilyTests(TestCase):
+    """ Unit Test Class for save_family function """
+
+    def setUp(self):  # pragma: no cover
+        """ SetUp of the test """
+        Category.objects.create(name="test")
+        category = Category.objects.get(name="test")
+        for index in range(0, 9):
+            Product.objects.create(
+                name=f"My product {index}",
+                category_id=category,
+                nutriscore=index,
+                url=f"www.test.fr {index}",
+                ingredients="www.test.fr",
+                photo="www.test.fr",
+                fat_100g=0,
+                saturate_fat_100g=0,
+                salt_100g=0,
+                sugars_100g=0,
+            )
+        self.credentials = {
+            "username": "usertest",
+            "password": "!!!!!!!!",
+            "email": "test_test@test.fr",
+        }
+        User.objects.create_user(**self.credentials)
+        self.client.login(
+            username=self.credentials["username"], password=self.credentials["password"]
+        )
+        self.user = User.objects.get(username="usertest")
+        self.product = Product.objects.get(name="My product 1")
+        self.substitute = Product.objects.get(name="My product 2")
+        Substitute.objects.create(
+            product_id=self.product, substitute_id=self.substitute, user_id=self.user
+        )
+        self.favori = Substitute.objects.get(
+            product_id=self.product, substitute_id=self.substitute, user_id=self.user
+        )
+        Family.objects.create(name="family", user_id=self.user)
+        self.family = Family.objects.get(name="family", user_id=self.user)
+        Family.objects.create(name="family2", user_id=self.user)
+
+    def test_saves_family_page(self):  # pragma: no cover
+        response = self.client.get(
+            "/save_family/family3/", args=("family3"), follow=True,
+        )
+        self.assertEquals(response.status_code, 200)
+
+    def test_view(self):  # pragma: no cover
+        response = self.client.get(
+            reverse("account:save_family", args=("family3",)), follow=True,
+        )
+        self.assertEquals(response.status_code, 200)
+        self.assertTemplateUsed(response, "favorites.html")
+
+    def test_save_family(self):  # pragma: no cover
+        response = self.client.get(
+            reverse("account:save_family", args=("family3",)), follow=True,
+        )
+        self.assertTemplateUsed(response, "favorites.html")
+        self.assertTrue(
+            Family.objects.filter(name="family3", user_id=self.user).exists()
+        )
+
+
+class SaveFamilyLiveTestCase(StaticLiveServerTestCase):
+    """ Functional Test Class for save_family function """
+
+    def setUp(self):  # pragma: no cover
+        """ SetUp of the test """
+        self.credentials = {
+            "username": "usertest",
+            "password": "!!!!!!!!",
+            "email": "test_test@test.fr",
+        }
+        User.objects.create_user(**self.credentials)
+        ChromeDriver = r"C:/Users/foxnono06/AppData/Local/chromedriver.exe"
+        self.selenium = webdriver.Chrome(executable_path=ChromeDriver)
+        super(SaveFamilyLiveTestCase, self).setUp()
+
+        # Login the user
+        self.assertTrue(
+            self.client.login(
+                username=self.credentials["username"],
+                password=self.credentials["password"],
+            )
+        )
+        # Add cookie to log in the browser
+        cookie = self.client.cookies["sessionid"]
+        self.selenium.get(
+            self.live_server_url
+        )  # visit page in the site domain so the page accepts the cookie
+        self.selenium.add_cookie(
+            {"name": "sessionid", "value": cookie.value, "secure": False, "path": "/"}
+        )
+
+        self.user = User.objects.get(username="usertest")
+
+    def tearDown(self):  # pragma: no cover
+        """ tearDown of the test """
+        self.selenium.quit()
+        super(SaveFamilyLiveTestCase, self).tearDown()
+
+    def test_save_family(self):  # pragma: no cover
+        """ Simulate save family action from webdriver """
+        selenium = self.selenium
+        # Opening the link we want to test
+        selenium.get(f"{self.live_server_url}/favorites/")
         selenium.maximize_window()
+        selenium.implicitly_wait(5)
 
-        username = selenium.find_element_by_id("id_username")
-        email = selenium.find_element_by_id("id_email")
-        password = selenium.find_element_by_id("id_password1")
-        password2 = selenium.find_element_by_id("id_password2")
-        robot = selenium.find_element_by_id("id_robot")
-        submit = selenium.find_element_by_id("submit")
+        add = selenium.find_element_by_class_name("btn-lg")
+        add.click()
+        time.sleep(2)
 
-        i = 0
-        while username.get_attribute("value") != "testuser" and i < 10:
-            username.click()
-            username.clear()
-            username.send_keys("testuser")
-            i += 1
-
-        email.click()
-        email.clear()
-        email.send_keys("a@a.fr")
-        password.click()
-        password.clear()
-        password.send_keys("!!!!!!!!")
-        password2.click()
-        password2.clear()
-        password2.send_keys("!!!!!!!!")
-        robot.click()
-        submit.send_keys(Keys.RETURN)
-
-        wait = WebDriverWait(selenium, 10)
-        wait.until(EC.presence_of_element_located((By.ID, "search-button")))
-
-        current_url = selenium.current_url
-        if (selenium.current_url[len(selenium.current_url) - 1]) == "/":
-            current_url = selenium.current_url[:-1]
-        assert current_url == f"{self.live_server_url}"
-        assert "Se déconnecter" in selenium.page_source
-        assert User.objects.filter(username="testuser").exists() is True
+        name = selenium.find_element_by_class_name("family_name")
+        name = selenium.find_element_by_xpath("//input[@class='family_name']")
+        name.send_keys("test")
+        selenium.find_element_by_xpath("//button[@class='validate']").send_keys(
+            Keys.RETURN
+        )
+        time.sleep(2)
+        assert Family.objects.filter(name="test", user_id=self.user,).exists() is True
+        assert "Mes Favoris" in selenium.page_source

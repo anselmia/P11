@@ -1,5 +1,6 @@
 {% extends 'layouts/default.html' %}
 {% load static %}
+{% load filter %}
 {% block body %}
 {% load widget_tweaks %}
 <script type=text/javascript> $GoToProduct="{{ GoToProduct }}" ;</script> <!-- Masthead-->
@@ -26,7 +27,7 @@
 
         <div class="col-lg-6 col-md-6 col-sm-8 align-self-baseline">
             <!--{% if envoi %}Votre message a bien été envoyé !{% endif %}-->
-            <form action="{% url 'home:search' %}" method="POST" class="form-horizontal search">
+            <form action="{% url 'home:search' order=0 %}" method="POST" class="form-horizontal search">
                 {{ form_search.search.errors }}
                 <div class="searchbar">
                     {% csrf_token %}           
@@ -48,11 +49,27 @@
 {% if products %}   
 <section id = "product"  class = "border border-dark">
     <div class="container-fluid p-0 ">
-        <div class="row no-gutters">
+        <br>
+        <div class="row no-gutters justify-content-center align-self-center mb-2">
+            <p class="justify-content-center align-self-center my-auto">Trier par : &nbsp;&nbsp;&nbsp;&nbsp;     </p>
+            {% with ordering='Nom Nutriscore Note' %}
+            <select id="order_product" class="order_product">
+                {% for order_type in ordering.split %}
+                    <option class = "option{{forloop.counter0}}" value="{{ forloop.counter0 }}" {% if forloop.counter0  ==  order %} selected="selected" {% endif %}>
+                        {{ order_type }}</option>
+                {% endfor %}
+            </select>
+            {% endwith %}
+        </div>
+        <div class="row no-gutters products">            
             {% for product in products %}   
                 <div class="col-lg-4 col-md-6 col-sm-12 product-picture">
                     <a class="portfolio-box product_{{product.name|cut:' '}}" href="{% url 'substitute:search-a-substitute' product_id=product.id %}" title="Subsituts">
                         <img class="mx-auto my-auto rounded img-fluid border-dark" src="{{product.photo}}" alt="Photo du produit"/>
+                        <br>
+                        <img class = "nutri" src="{% get_static_prefix %}images/rating/{{ product.average_rating|round_to_int }}.png" alt="Note du produit"
+                                style="height: auto; max-width: 6rem;"></img>
+                        <br>
                         <div class="portfolio-box-caption">
                             <div class="project-category text-white-50">{{product.category_id}}</div>
                             <div class="project-name">{{product.name}}</div>
@@ -61,6 +78,10 @@
                             <img class = "nutri" src="{% get_static_prefix %}images/nutriscore/Nutri-score-{{ product.nutriscore }}.svg"
                                 style="height: auto; width: 100%;" alt="Nutriscore"></img>
                         </div>
+                        <div class="img position-absolute" style=" bottom: -2rem; left: -2.5rem; max-width: 6rem;">
+                            
+                        </div>
+                        
                     </a>
                 </div>                    
             {% endfor %}            

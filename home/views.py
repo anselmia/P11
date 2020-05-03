@@ -29,7 +29,7 @@ def mentions(request):
     return render(request, "mentions.html", {"form_search": SearchForm(None)})
 
 
-def search(request):
+def search(request, order=0):
     """
     Views for search
     :param request:
@@ -47,7 +47,7 @@ def search(request):
         form = SearchForm(None)
         text = request.session["text"]
 
-    products = S.search_product(text)
+    products = S.search_product(text, order)
 
     if products.count() > 0:
         GoToProduct = True
@@ -63,10 +63,6 @@ def search(request):
 
     context["GoToProduct"] = GoToProduct
     context["form_search"] = form
+    context["order"] = order
 
     return render(request, "home.html", context)
-
-
-# l = logging.getLogger('django.db.backends')
-# l.setLevel(logging.DEBUG)
-# l.addHandler(logging.StreamHandler())

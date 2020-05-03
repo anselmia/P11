@@ -11,6 +11,7 @@ https://docs.djangoproject.com/en/3.0/ref/settings/
 """
 
 import os
+
 #
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
@@ -25,34 +26,32 @@ SECRET_KEY = "uojp%c%-@l$aj0qc(v7(h3v63001h8$n=3g$7^g0j!)w-$#)r0"
 
 # SECURITY WARNING: don't run with debug turned on in production!
 
-ALLOWED_HOSTS = ['purbeurre-aa.herokuapp.com', '127.0.0.1']
+ALLOWED_HOSTS = ["purbeurre-aa.herokuapp.com", "127.0.0.1"]
 
 # Application definition
 
 INSTALLED_APPS = [
-    'widget_tweaks',
+    "widget_tweaks",
     "substitute.apps.SubstituteConfig",
     "account.apps.AccountConfig",
-    "home.apps.HomeConfig",    
+    "home.apps.HomeConfig",
     "django.contrib.admin",
     "django.contrib.auth",
     "django.contrib.contenttypes",
     "django.contrib.sessions",
     "django.contrib.messages",
     "django.contrib.staticfiles",
-    "debug_toolbar",
 ]
 
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
-    'whitenoise.middleware.WhiteNoiseMiddleware',
+    "whitenoise.middleware.WhiteNoiseMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
     "django.contrib.auth.middleware.AuthenticationMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
-    "debug_toolbar.middleware.DebugToolbarMiddleware",
 ]
 
 ROOT_URLCONF = "purbeurre.urls"
@@ -118,24 +117,6 @@ LOGIN_REDIRECT_URL = "home:index"
 
 # LOGOUT_URL= 'account:logout'
 
-LOGGING = {
-    'version': 1,
-    'disable_existing_loggers': False,
-    'handlers': {
-        'console': {
-            'level': 'DEBUG',
-            'class': 'logging.StreamHandler',
-        },
-    },
-    'loggers': {
-        'django': {
-            'handlers': ['console'],
-            'level': 'DEBUG',
-            'propagate': True,
-        },
-    },
-}
-
 # Internationalization
 # https://docs.djangoproject.com/en/3.0/topics/i18n/
 
@@ -159,7 +140,7 @@ STATIC_URL = "/static/"
 
 INTERNAL_IPS = ["127.0.0.1"]
 
-if os.environ.get('ENV') == 'PRODUCTION':  # pragma: no cover
+if os.environ.get("ENV") == "PRODUCTION":  # pragma: no cover
     import dj_database_url
 
     SECRET_KEY = os.environ.get("SECRET_KEY")
@@ -168,16 +149,14 @@ if os.environ.get('ENV') == 'PRODUCTION':  # pragma: no cover
     # Static files settings
     PROJECT_ROOT = os.path.dirname(os.path.abspath(__file__))
 
-    STATIC_ROOT = os.path.join(PROJECT_ROOT, 'staticfiles')
+    STATIC_ROOT = os.path.join(PROJECT_ROOT, "staticfiles")
 
     # Extra places for collectstatic to find static files.
-    STATICFILES_DIRS = (
-        os.path.join(PROJECT_ROOT, 'static'),
-    )
+    STATICFILES_DIRS = (os.path.join(PROJECT_ROOT, "static"),)
 
-    STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
+    STATICFILES_STORAGE = "whitenoise.storage.CompressedManifestStaticFilesStorage"
 
     db_from_env = dj_database_url.config(conn_max_age=500)
-    DATABASES['default'].update(db_from_env)
+    DATABASES["default"].update(db_from_env)
 else:
     DEBUG = True

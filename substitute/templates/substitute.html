@@ -1,5 +1,6 @@
 {% extends 'layouts/default.html' %}
 {% load static %}
+{% load filter %}
 {% block body %}
 <header class="masthead border border-dark">
     <div class="col-lg-4 col-sm-6 mb-3">
@@ -27,12 +28,24 @@
 </header>
 
 <section id="product">
-    <div class="container-fluid p-4 substitute">
+    <div class="container-fluid p-4 substitutes">
+        <div class="row no-gutters justify-content-center align-self-center mb-2">
+            <p class="justify-content-center align-self-center my-auto">Trier par : &nbsp;&nbsp;&nbsp;&nbsp; </p>
+            {% with ordering='Nutriscore Nom Note' %}
+            <select id="{{ product.id }}" class="order_substitute">
+                {% for order_type in ordering.split %}
+                <option class="option{{forloop.counter0}}" value="{{ forloop.counter0 }}"
+                    {% if forloop.counter0  ==  order %} selected="selected" {% endif %}>
+                    {{ order_type }}</option>
+                {% endfor %}
+            </select>
+            {% endwith %}
+        </div>
         <div class="row align-items-center justify-content-center text-center">
             <h2>Vous pouvez remplacez cet aliment par :</h2>
         </div>
         <br>
-        <div class="row no-gutters">
+        <div class="row no-gutters substitutes">
             {% for substitute in substitutes %}
             <div class="col-lg-4 col-sm-6 product-picture">
                 <a class="portfolio-box substitute_{{substitute.name|cut:' '}}"
@@ -40,6 +53,11 @@
                     title="Détails du produit">
                     <img class="img-responsive rounded product-image-size-max" src="{{substitute.photo}}"
                         alt="Photo du produit" />
+                    <br>
+                    <img class="nutri"
+                        src="{% get_static_prefix %}images/rating/{{ substitute.average_rating|round_to_int}}.png"
+                        alt="Note du produit" style="height: auto; max-width: 6rem;"></img>
+                    <br>
                     <div class="portfolio-box-caption">
                         <div class="project-category text-white-50">{{substitute.category_id}}</div>
                         <div class="project-name">{{substitute.name}}</div>

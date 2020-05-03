@@ -35,6 +35,7 @@ def favorites(request, id_family=None):
         request,
         "favorites.html",
         {
+            "title": "Mes favoris",
             "favoris": favoris,
             "families": families,
             "family": family,
@@ -43,6 +44,7 @@ def favorites(request, id_family=None):
     )
 
 
+@login_required
 def save_favorites(request, id_favori, id_family):
     """
         @require login
@@ -56,13 +58,14 @@ def save_favorites(request, id_favori, id_family):
         if id_family == 0:
             family = None
         else:
-            family = Family.objects.get(pk=id_family)
+            family = Family.objects.get(pk=id_family, user_id=request.user)
         favori.family_id = family
         favori.save()
 
     return redirect(reverse("account:favorites"))
 
 
+@login_required
 def save_family(request, family_name=None):
     """
         @require login
@@ -74,9 +77,9 @@ def save_family(request, family_name=None):
     if (
         request.method == "GET"
         and family_name != None
-        and not Family.objects.filter(name=family_name).exists()
+        and not Family.objects.filter(name=family_name, user_id=request.user).exists()
     ):
-        family = Family.objects.create(name=family_name)
+        family = Family.objects.create(name=family_name, user_id=request.user)
         family.save()
 
     return redirect(reverse("account:favorites"))

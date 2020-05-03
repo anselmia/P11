@@ -5,9 +5,19 @@ from . import views
 app_name = "substitute"
 
 urlpatterns = [
-    path("substitute/<int:product_id>", views.substitute, name="search-a-substitute"),
+    path("substitute/<int:product_id>/", views.substitute, name="search-a-substitute",),
     path(
-        "substitute/<int:product_id>/?page=<int:page>",
+        "substitute/<int:product_id>/<int:order>/",
+        views.substitute,
+        name="search-a-substitute",
+    ),
+    path(
+        "substitute/<int:product_id>/?page=<int:page>/",
+        views.substitute,
+        name="search-a-substitute",
+    ),
+    path(
+        "substitute/<int:product_id>/<int:order>/?page=<int:page>/",
         views.substitute,
         name="search-a-substitute",
     ),
@@ -18,5 +28,6 @@ urlpatterns = [
         views.detail_favoris,
         name="detail_favoris",
     ),
+    path("rating/<int:product_id>/", views.rating, name="rating"),
+    path("vote/<int:product_id>/<int:actual_rating>/", views.vote, name="vote"),
 ]
-

@@ -15,7 +15,7 @@
             <ul class="navbar-nav ml-auto my-2 my-lg-0">
                 {% if form_search.search %}
                 <li class="nav-item searchbar_input">
-                    <form action="{% url 'home:search' %}" method="POST" class="form-horizontal search">
+                    <form action="{% url 'home:search' order=0 %}" method="POST" class="form-horizontal search">
                         {{ form_search.search.errors }}
                         <div class="searchbar">
                             {% csrf_token %}

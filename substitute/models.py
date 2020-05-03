@@ -7,8 +7,12 @@ class Family(models.Model):
     """ Product Categories """
 
     name = models.CharField(max_length=100, unique=True, verbose_name="Nom")
+    user_id = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
 
     class Meta:
+        constraints = [
+            models.UniqueConstraint(fields=["name", "user_id"], name="unique",)
+        ]
         verbose_name = "Famille"
 
     def __str__(self):
