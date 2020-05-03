@@ -191,11 +191,10 @@ class SearchLiveTestCase(StaticLiveServerTestCase):
 
         text.send_keys("product")
 
-        # # submitting the form
+        #  submitting the form
         submit.click()
 
         assert "test" in selenium.page_source
-        print(selenium.current_url)
         assert selenium.current_url == f"{self.live_server_url}/product/0/"
         assert selenium.find_element_by_xpath("//a[@href='?page=2']") is not None
 
