@@ -52,4 +52,9 @@ class Rating(models.Model):
     product_id = models.ForeignKey(Product, on_delete=models.CASCADE,)
 
     class Meta:
+        constraints = [
+            models.UniqueConstraint(
+                fields=["product_id", "user_id"], name="unique_rating",
+            )
+        ]
         verbose_name = "Note"
