@@ -79,14 +79,12 @@
 
 
   $('select.family').on('change', function (e) {
-    var optionSelected = $("option:selected", this);
     var valueSelected = this.value;
     var url = window.location.origin + "/favorites/" + parseInt(valueSelected) + '/'
     window.location.href = url;
   });
 
   $('select.favori').on('change', function (e) {
-    var optionSelected = $("option:selected", this);
     var valueSelected = this.value.split("/");
     var id_favori = valueSelected[0]
     var id_family = valueSelected[1]
@@ -94,7 +92,6 @@
   });
 
   $('select.order_product').on('change', function (e) {
-    var optionSelected = $("option:selected", this);
     var valueSelected = this.value;
     var url = window.location.origin + "/product/" + parseInt(valueSelected) + '/'
     window.location.href = url;
