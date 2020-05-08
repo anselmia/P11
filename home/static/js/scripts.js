@@ -127,8 +127,10 @@
     var widget_id = widget.attr('id');
 
     $.post('/vote/' + parseInt(widget_id) + '/' + clicked_on + '/').done(function (INFO) {
-      $(widget).data('fsr', INFO);
-      set_votes(widget);
+      if (INFO.status == true) {
+        $(widget).data('fsr', INFO);
+        set_votes(widget);
+      }
     });
   });
 

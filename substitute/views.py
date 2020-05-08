@@ -133,32 +133,35 @@ def rating(request, product_id):
 def vote(request, product_id, actual_rating):
     product = Product.objects.get(pk=product_id)
     if request.method == "POST":
-        try:
-            nb_vote = 0
-            ratings = 0
-            tot_rating = Rating.objects.filter(product_id=product)
-            for rating in tot_rating:
+        if not Rating.objects.filter(user_id=request.user, product_id=product).exists():
+            try:
+                nb_vote = 0
+                ratings = 0
+                tot_rating = Rating.objects.filter(product_id=product)
+                for rating in tot_rating:
+                    nb_vote += 1
+                    ratings += rating.rating
+
+                Rating.objects.create(
+                    rating=actual_rating, user_id=request.user, product_id=product
+                )
+
                 nb_vote += 1
-                ratings += rating.rating
+                ratings += actual_rating
+                product.average_rating = round(ratings / nb_vote, 1)
+                product.save()
+            except:
+                pass
 
-            Rating.objects.create(
-                rating=actual_rating, user_id=request.user, product_id=product
+            if product.average_rating is None:
+                product.average_rating = 0
+
+            return JsonResponse(
+                {
+                    "status": True,
+                    "whole_avg": int(round(product.average_rating)),
+                    "number_votes": nb_vote,
+                    "dec_avg": round(product.average_rating, 1),
+                }
             )
-
-            nb_vote += 1
-            ratings += actual_rating
-            product.average_rating = round(ratings / nb_vote, 1)
-            product.save()
-        except:
-            pass
-
-        if product.average_rating is None:
-            product.average_rating = 0
-
-        return JsonResponse(
-            {
-                "whole_avg": int(round(product.average_rating)),
-                "number_votes": nb_vote,
-                "dec_avg": round(product.average_rating, 1),
-            }
-        )
+        return JsonResponse({"status": False})
